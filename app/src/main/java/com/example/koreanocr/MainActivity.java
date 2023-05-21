@@ -9,9 +9,12 @@ import android.Manifest;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Size;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;;
 import androidx.camera.view.PreviewView;
@@ -22,6 +25,8 @@ import androidx.lifecycle.LifecycleOwner;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,22 +34,26 @@ public class MainActivity extends AppCompatActivity {
     private final String[] REQUESTED_PERMISSIONS = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     private PreviewView previewView;
+    private ProcessCameraProvider cameraProvider;
+    private ExecutorService cameraExecutor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         previewView = findViewById(R.id.viewFinder);
+
         // check if all permissions granted
         if (allPermissionsGranted()) {
             // You can use the API that requires the permission.
             startCamera();
 
         } else {
-            this.finish();
+            // You can directly ask for the permission.
+            requestPermissions(REQUESTED_PERMISSIONS, REQUEST_CODE);
         }
 
+        cameraExecutor = Executors.newSingleThreadExecutor();
     }
 
     private void startCamera() {
@@ -55,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         Preview preview = new Preview.Builder().build();
         cameraProviderFuture.addListener(() -> {
             try {
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                cameraProvider = cameraProviderFuture.get();
 
                 // bind preview and camera, and set SurfaceProvider
                 bindPreview(cameraProvider);
@@ -76,6 +85,26 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         // set SurfaceProvider
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
+        //
+        ImageAnalysis imageAnalysis =
+                new ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
+
+
+
+        imageAnalysis.setAnalyzer(cameraExecutor, new ImageAnalysis.Analyzer() {
+            @Override
+            public void analyze(@NonNull ImageProxy imageProxy) {
+                int rotationDegrees = imageProxy.getImageInfo().getRotationDegrees();
+                // insert your code here.
+
+                // after done, release the ImageProxy object
+                imageProxy.close();
+            }
+        });
+
         try {
             // Unbind use cases before rebinding
             cameraProvider.unbindAll();
@@ -89,15 +118,10 @@ public class MainActivity extends AppCompatActivity {
 
     // check permissions are granted
     private boolean allPermissionsGranted(){
-        for(String permission : REQUESTED_PERMISSIONS){
-            if(ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED){
-                return true;
-            } else {
-                // You can directly ask for the permission.
-                requestPermissions(REQUESTED_PERMISSIONS, REQUEST_CODE);
-            }
-        }
-        return false;
+        for(String permission : REQUESTED_PERMISSIONS)
+            if(ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
+                return false;
+        return true;
     }
 
 }
