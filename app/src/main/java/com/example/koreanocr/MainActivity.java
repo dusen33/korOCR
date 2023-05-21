@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mlkit.vision.text.TextRecognizer;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -36,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     private PreviewView previewView;
     private ProcessCameraProvider cameraProvider;
     private ExecutorService cameraExecutor;
+
+    // When using Korean script library
+    private TextRecognizer recognizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,64 +61,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startCamera() {
-        // Used to bind the lifecycle of cameras to the lifecycle owner
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
 
-        // Preview
-        Preview preview = new Preview.Builder().build();
         cameraProviderFuture.addListener(() -> {
+            // Used to bind the lifecycle of cameras to the lifecycle owner
+            ProcessCameraProvider cameraProvider = null;
             try {
                 cameraProvider = cameraProviderFuture.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
-                // bind preview and camera, and set SurfaceProvider
-                bindPreview(cameraProvider);
-            } catch (ExecutionException | InterruptedException e) {
+            // Preview
+            Preview preview = new Preview.Builder().build();
+            preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
+
+            // Select back camera as a default
+            CameraSelector cameraSelector = new CameraSelector.Builder()
+                    .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                    .build();
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll();
+
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }, ContextCompat.getMainExecutor(this));
     }
 
 
-    // bind preview
-    @SuppressLint("RestrictedApi")
-    void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
-        Preview preview = new Preview.Builder()
-                .build();
-        // Select back camera as a default
-        CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                .build();
-        // set SurfaceProvider
-        preview.setSurfaceProvider(previewView.getSurfaceProvider());
-
-        //
-        ImageAnalysis imageAnalysis =
-                new ImageAnalysis.Builder()
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build();
-
-
-
-        imageAnalysis.setAnalyzer(cameraExecutor, new ImageAnalysis.Analyzer() {
-            @Override
-            public void analyze(@NonNull ImageProxy imageProxy) {
-                int rotationDegrees = imageProxy.getImageInfo().getRotationDegrees();
-                // insert your code here.
-
-                // after done, release the ImageProxy object
-                imageProxy.close();
-            }
-        });
-
-        try {
-            // Unbind use cases before rebinding
-            cameraProvider.unbindAll();
-            // Bind uses cases to camera
-            Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview);
-        } catch (Exception e) {
-            Log.e(TAG, "Use case binding failed", e);
-        }
-
-    }
 
     // check permissions are granted
     private boolean allPermissionsGranted(){
