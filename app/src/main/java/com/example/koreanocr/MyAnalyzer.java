@@ -40,6 +40,7 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                         public void onSuccess(Text visionText) {
                             String text = visionText.getText();
                             Log.d("recognizer", "Success:" + text);
+                            // 여기에서 뭔가를 해도되고
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -50,6 +51,7 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                     })
                     .addOnCompleteListener(proxy -> imageProxy.close());
 
+            // 여기에서 result를 다뤄도 되고
         }
     }
 }
