@@ -4,18 +4,21 @@ import static androidx.camera.core.CameraXThreads.TAG;
 
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.media.Image;
 import android.os.Bundle;
 import android.Manifest;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.annotation.Size;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;;
@@ -43,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private ExecutorService cameraExecutor;
 
     // When using Korean script library
-    private TextRecognizer recognizer =
-            TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
+    private TextRecognizer recognizer;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +61,7 @@ public class MainActivity extends AppCompatActivity {
             startCamera();
 
         } else {
-            // You can directly ask for the permission.
-            requestPermissions(REQUESTED_PERMISSIONS, REQUEST_CODE);
+            finish();
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor();
@@ -67,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void startCamera() {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+
+        recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
 
         cameraProviderFuture.addListener(() -> {
             // Used to bind the lifecycle of cameras to the lifecycle owner
@@ -83,11 +87,24 @@ public class MainActivity extends AppCompatActivity {
             Preview preview = new Preview.Builder().build();
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-
             // Select back camera as a default
             CameraSelector cameraSelector = new CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                     .build();
+
+            // Image capture
+            ImageCapture imageCapture = new ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .build();
+
+            // set analyzer
+            // set analyzer ans bind it to cameraProvider
+            ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build();
+
+            imageAnalysis.setAnalyzer(getExecutor(), this);
+
 
 
             try {
@@ -104,12 +121,24 @@ public class MainActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
+    private class MyAnalyzer implements ImageAnalysis.Analyzer {
+        @Override
+        @OptIn(markerClass = ExperimentalGetImage.class)
+        public void analyze(ImageProxy imageProxy) {
+            Image mediaImage = imageProxy.getImage();
+            if (mediaImage != null) {
+                InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
+
+            }
+        }
+    }
 
     // check permissions are granted
     private boolean allPermissionsGranted(){
         for(String permission : REQUESTED_PERMISSIONS)
             if((ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED))
-                return false;
+                // You can directly ask for the permission.
+                requestPermissions(REQUESTED_PERMISSIONS, REQUEST_CODE);
         return true;
     }
 
