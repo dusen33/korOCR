@@ -1,20 +1,17 @@
 package com.example.koreanocr;
 
-import static androidx.camera.core.CameraXThreads.TAG;
-
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.media.Image;
+import android.os.Build;
 import android.os.Bundle;
 import android.Manifest;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
-import androidx.annotation.Size;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageAnalysis;
@@ -25,15 +22,20 @@ import androidx.camera.lifecycle.ProcessCameraProvider;;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LifecycleOwner;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,9 +46,6 @@ public class MainActivity extends AppCompatActivity {
 
     private PreviewView previewView;
     private ExecutorService cameraExecutor;
-
-    // When using Korean script library
-    private TextRecognizer recognizer;
 
 
     @Override
@@ -67,10 +66,9 @@ public class MainActivity extends AppCompatActivity {
         cameraExecutor = Executors.newSingleThreadExecutor();
     }
 
+    @SuppressLint("RestrictedApi")
     private void startCamera() {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
-
-        recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
 
         cameraProviderFuture.addListener(() -> {
             // Used to bind the lifecycle of cameras to the lifecycle owner
@@ -98,14 +96,13 @@ public class MainActivity extends AppCompatActivity {
                     .build();
 
             // set analyzer
-            // set analyzer ans bind it to cameraProvider
             ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
 
-            imageAnalysis.setAnalyzer(getExecutor(), this);
-
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                imageAnalysis.setAnalyzer(getMainExecutor(), new MyAnalyzer());
+            }
 
             try {
                 // Unbind use cases before rebinding
@@ -113,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                        this, cameraSelector, preview);
+                        this, cameraSelector, preview, imageAnalysis);
 
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -121,17 +118,6 @@ public class MainActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private class MyAnalyzer implements ImageAnalysis.Analyzer {
-        @Override
-        @OptIn(markerClass = ExperimentalGetImage.class)
-        public void analyze(ImageProxy imageProxy) {
-            Image mediaImage = imageProxy.getImage();
-            if (mediaImage != null) {
-                InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
-
-            }
-        }
-    }
 
     // check permissions are granted
     private boolean allPermissionsGranted(){
