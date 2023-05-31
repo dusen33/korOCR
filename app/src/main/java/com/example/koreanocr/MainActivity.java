@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.Manifest;
 import android.util.Log;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
@@ -47,12 +48,14 @@ public class MainActivity extends AppCompatActivity {
     private PreviewView previewView;
     private ExecutorService cameraExecutor;
 
+    public static Button captureButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         previewView = findViewById(R.id.viewFinder);
+        captureButton = findViewById(R.id.image_capture_button);
 
         // check if all permissions granted
         if (allPermissionsGranted()) {
@@ -101,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                     .build();
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                imageAnalysis.setAnalyzer(getMainExecutor(), new MyAnalyzer());
+                imageAnalysis.setAnalyzer(getMainExecutor(), new MyAnalyzer(this));
             }
 
             try {
