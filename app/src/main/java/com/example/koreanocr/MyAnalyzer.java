@@ -55,8 +55,8 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                             PriorityQueue<Text.TextBlock> pq = new PriorityQueue<>(new Comparator<Text.TextBlock>() {
                                 @Override
                                 public int compare(Text.TextBlock b1, Text.TextBlock b2) {
-                                    int size1 = b1.getBoundingBox().width() * b1.getBoundingBox().height();
-                                    int size2 = b2.getBoundingBox().width() * b2.getBoundingBox().height();
+                                    int size1 = symbolSize(b1);
+                                    int size2 = symbolSize(b2);
                                     if (size1 < size2) return 1;
                                     if (size1 > size2) return -1;
                                     return 0;
@@ -65,10 +65,10 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                             for(Text.TextBlock block : visionText.getTextBlocks())
                                 pq.add(block);
 
-                            StringBuffer sb = new StringBuffer("\n\n---------------------------------------------");
-                            for(int i=0; i<5 && !pq.isEmpty(); i++) {
+                            StringBuffer sb = new StringBuffer("\n\n---------------------------------------------\n");
+                            for(int i=0; i<3 || !pq.isEmpty(); i++) {
                                 Text.TextBlock block = pq.poll();
-                                sb.append(block.getText()+" : "+block.getBoundingBox().height()*block.getBoundingBox().width()+"\n");
+                                sb.append(block.getText()+" : "+symbolSize(block)+"\n");
                             }
 
 
@@ -94,12 +94,8 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
         }
     }
 
-    private class customCompare implements Comparator<Text.TextBlock> {
-        public int compare(Text.TextBlock b1, Text.TextBlock b2) {
-            int size1 = b1.getBoundingBox().width() * b1.getBoundingBox().height();
-            int size2 = b2.getBoundingBox().width() * b2.getBoundingBox().height();
-            if (size1 < size2) return 1;
-            else return 0;
-        }
+    int symbolSize(Text.TextBlock t){
+        Text.Symbol s = t.getLines().get(0).getElements().get(0).getSymbols().get(0);
+        return s.getBoundingBox().height() * s.getBoundingBox().width();
     }
 }
