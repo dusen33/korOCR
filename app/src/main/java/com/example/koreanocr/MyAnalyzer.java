@@ -1,8 +1,11 @@
 package com.example.koreanocr;
 
+import static android.net.wifi.p2p.WifiP2pManager.ERROR;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.media.Image;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +30,7 @@ import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions;
 import java.util.Comparator;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.PriorityQueue;
 
 public class MyAnalyzer implements ImageAnalysis.Analyzer {
@@ -35,12 +39,22 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
     private Button captureButton;
     private Context context;
     private TextView textView;
+    private TextToSpeech tts;
     public MyAnalyzer(Context context) {
         this.context = context;
         // When using Korean script library
         this.recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
         this.captureButton = MainActivity.captureButton;
         this.textView = MainActivity.textView;
+        this.tts = tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != ERROR) {
+                    // 언어를 선택한다.
+                    tts.setLanguage(Locale.KOREAN);
+                }
+            }
+        });
     }
     @Override
     @OptIn(markerClass = ExperimentalGetImage.class)
@@ -71,10 +85,12 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                                 pq.add(block);
 
                             StringBuffer sb = new StringBuffer();
+                            StringBuffer tts_sb = new StringBuffer();
                             for(int i=0; i<readingCount && !pq.isEmpty(); i++) {
                                 Text.TextBlock block = pq.poll();
                                 try {
                                     sb.append(block.getText() + " : " + symbolSize(block) + "\n");
+                                    tts_sb.append((block.getText())+"\n");
                                 } catch (Exception e) {
                                     sb.append("인식 실패\n");
                                 }
@@ -91,6 +107,8 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
 //                                    toast.show();
 
                                     textView.setText(String.valueOf(sb));
+                                    // editText에 있는 문장을 읽는다.
+                                    tts.speak(String.valueOf(tts_sb), TextToSpeech.QUEUE_FLUSH, null);
                                 }
                             });
 

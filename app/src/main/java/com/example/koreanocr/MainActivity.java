@@ -10,10 +10,10 @@ import android.Manifest;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
+import android.util.Size;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
-import androidx.annotation.Size;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ExperimentalGetImage;
