@@ -6,6 +6,7 @@ import android.media.Image;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,14 +30,17 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 public class MyAnalyzer implements ImageAnalysis.Analyzer {
+    static final int readingCount = 3;
     private TextRecognizer recognizer;
     private Button captureButton;
     private Context context;
+    private TextView textView;
     public MyAnalyzer(Context context) {
         this.context = context;
         // When using Korean script library
         this.recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
         this.captureButton = MainActivity.captureButton;
+        this.textView = MainActivity.textView;
     }
     @Override
     @OptIn(markerClass = ExperimentalGetImage.class)
@@ -62,23 +66,31 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                                     return 0;
                                 }
                             });
+
                             for(Text.TextBlock block : visionText.getTextBlocks())
                                 pq.add(block);
 
-                            StringBuffer sb = new StringBuffer("\n\n---------------------------------------------\n");
-                            for(int i=0; i<3 || !pq.isEmpty(); i++) {
+                            StringBuffer sb = new StringBuffer();
+                            for(int i=0; i<readingCount && !pq.isEmpty(); i++) {
                                 Text.TextBlock block = pq.poll();
-                                sb.append(block.getText()+" : "+symbolSize(block)+"\n");
+                                try {
+                                    sb.append(block.getText() + " : " + symbolSize(block) + "\n");
+                                } catch (Exception e) {
+                                    sb.append("인식 실패\n");
+                                }
                             }
 
 
-//                            Toast toast = Toast.makeText(context, sequence, Toast.LENGTH_SHORT);
+//                            Toast toast = Toast.makeText(context, String.valueOf(sb), Toast.LENGTH_SHORT);
                             // 버튼 조작을 통해 출력
                             captureButton.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    Log.d("success", String.valueOf(sb)+"-----------------------------------------------\n");
 
+                                    Log.d("success", String.valueOf(sb)+"-----------------------------------------------\n");
+//                                    toast.show();
+
+                                    textView.setText(String.valueOf(sb));
                                 }
                             });
 

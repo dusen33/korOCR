@@ -9,9 +9,11 @@ import android.os.Bundle;
 import android.Manifest;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
+import androidx.annotation.Size;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ExperimentalGetImage;
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private ExecutorService cameraExecutor;
 
     public static Button captureButton;
+    public static TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         previewView = findViewById(R.id.viewFinder);
         captureButton = findViewById(R.id.image_capture_button);
+        textView = findViewById(R.id.result_textView);
 
         // check if all permissions granted
         if (allPermissionsGranted()) {
