@@ -20,14 +20,14 @@
         android:textSize="10sp"
         app:layout_constraintTop_toTopOf="parent"></TextView>
 
-    <Button
-        android:id="@+id/image_capture_button"
-        android:layout_width="match_parent"
-        android:layout_height="135dp"
-        android:elevation="2dp"
-        android:text="@string/take_photo"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
+<!--    <Button-->
+<!--        android:id="@+id/image_capture_button"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="135dp"-->
+<!--        android:elevation="2dp"-->
+<!--        android:text="@string/take_photo"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        />-->
 
 
     <androidx.constraintlayout.widget.Guideline

@@ -1,22 +1,24 @@
 package com.example.koreanocr;
 
 import static android.net.wifi.p2p.WifiP2pManager.ERROR;
+import static android.speech.tts.TextToSpeech.QUEUE_FLUSH;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.media.Image;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
+import androidx.camera.view.PreviewView;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -28,15 +30,13 @@ import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions;
 
 import java.util.Comparator;
-import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
 import java.util.PriorityQueue;
 
 public class MyAnalyzer implements ImageAnalysis.Analyzer {
-    static final int readingCount = 3;
+    static final int readingCount = 5;
     private TextRecognizer recognizer;
-    private Button captureButton;
+    private PreviewView screen;
     private Context context;
     private TextView textView;
     private TextToSpeech tts;
@@ -44,14 +44,15 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
         this.context = context;
         // When using Korean script library
         this.recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
-        this.captureButton = MainActivity.captureButton;
+        this.screen = MainActivity.previewView;
         this.textView = MainActivity.textView;
-        this.tts = tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+        this.tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if(status != ERROR) {
                     // 언어를 선택한다.
                     tts.setLanguage(Locale.KOREAN);
+                    tts.setSpeechRate(2);
                 }
             }
         });
@@ -70,11 +71,11 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                     .addOnSuccessListener(new OnSuccessListener<Text>() {
                         @Override
                         public void onSuccess(Text visionText) {
-                            PriorityQueue<Text.TextBlock> pq = new PriorityQueue<>(new Comparator<Text.TextBlock>() {
+                            PriorityQueue<Text.Line> pq = new PriorityQueue<>(new Comparator<Text.Line>() {
                                 @Override
-                                public int compare(Text.TextBlock b1, Text.TextBlock b2) {
-                                    int size1 = symbolSize(b1);
-                                    int size2 = symbolSize(b2);
+                                public int compare(Text.Line b1, Text.Line b2) {
+                                    int size1 = wordSize(b1);
+                                    int size2 = wordSize(b2);
                                     if (size1 < size2) return 1;
                                     if (size1 > size2) return -1;
                                     return 0;
@@ -82,33 +83,37 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                             });
 
                             for(Text.TextBlock block : visionText.getTextBlocks())
-                                pq.add(block);
+                                for(Text.Line line : block.getLines())
+//                                    if(line.getConfidence() > 0.7)
+                                        pq.add(line);
 
                             StringBuffer sb = new StringBuffer();
-                            StringBuffer tts_sb = new StringBuffer();
                             for(int i=0; i<readingCount && !pq.isEmpty(); i++) {
-                                Text.TextBlock block = pq.poll();
+                                Text.Line line = pq.poll();
                                 try {
-                                    sb.append(block.getText() + " : " + symbolSize(block) + "\n");
-                                    tts_sb.append((block.getText())+"\n");
+                                    sb.append(line.getText() + "\n");
                                 } catch (Exception e) {
                                     sb.append("인식 실패\n");
                                 }
                             }
 
 
-//                            Toast toast = Toast.makeText(context, String.valueOf(sb), Toast.LENGTH_SHORT);
-                            // 버튼 조작을 통해 출력
-                            captureButton.setOnClickListener(new View.OnClickListener() {
+                            screen.setOnTouchListener(new View.OnTouchListener() {
+                                @SuppressLint("ClickableViewAccessibility")
                                 @Override
-                                public void onClick(View v) {
-
-                                    Log.d("success", String.valueOf(sb)+"-----------------------------------------------\n");
-//                                    toast.show();
-
-                                    textView.setText(String.valueOf(sb));
-                                    // editText에 있는 문장을 읽는다.
-                                    tts.speak(String.valueOf(tts_sb), TextToSpeech.QUEUE_FLUSH, null);
+                                public boolean onTouch(View v, MotionEvent event) {
+                                    switch(event.getAction()) {
+                                        case MotionEvent.ACTION_DOWN:
+                                            // tts 실행
+                                            tts.speak(sb.toString(), QUEUE_FLUSH, null, null);
+                                            textView.setText(String.valueOf(sb));
+                                            return true;
+                                        case MotionEvent.ACTION_UP:
+                                            // RELEASED
+                                            tts.stop();
+                                            return true;
+                                    }
+                                    return false;
                                 }
                             });
 
@@ -124,8 +129,8 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
         }
     }
 
-    int symbolSize(Text.TextBlock t){
-        Text.Symbol s = t.getLines().get(0).getElements().get(0).getSymbols().get(0);
+    int wordSize(Text.Line t){
+        Text.Element s = t.getElements().get(0);
         return s.getBoundingBox().height() * s.getBoundingBox().width();
     }
 }

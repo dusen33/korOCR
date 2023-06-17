@@ -47,10 +47,10 @@ public class MainActivity extends AppCompatActivity {
     private final int REQUEST_CODE = 1001;
     private final String[] REQUESTED_PERMISSIONS = new String[]{Manifest.permission.CAMERA};
 
-    private PreviewView previewView;
+    public static PreviewView previewView;
     private ExecutorService cameraExecutor;
 
-    public static Button captureButton;
+    private Button captureButton;
     public static TextView textView;
 
     @Override
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         previewView = findViewById(R.id.viewFinder);
-        captureButton = findViewById(R.id.image_capture_button);
+//        captureButton = findViewById(R.id.image_capture_button);
         textView = findViewById(R.id.result_textView);
 
         // check if all permissions granted
