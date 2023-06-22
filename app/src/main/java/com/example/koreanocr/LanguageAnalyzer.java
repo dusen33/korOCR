@@ -65,7 +65,7 @@ public class LanguageAnalyzer implements ImageAnalysis.Analyzer {
     public void analyze(ImageProxy imageProxy) {
         Image mediaImage = imageProxy.getImage();
         if (mediaImage != null) {
-            InputImage image = InputImage.fromMediaImage(
+            InputImage image = inputImageFromMediaImage(
                     mediaImage, imageProxy.getImageInfo().getRotationDegrees());
 
             // process image to recognizer
@@ -132,4 +132,9 @@ public class LanguageAnalyzer implements ImageAnalysis.Analyzer {
         Text.Element s = t.getElements().get(0);
         return s.getBoundingBox().height() * s.getBoundingBox().width();
     }
+    
+    private Bitmap preprocessImage(Bitmap image) {
+        return image;
+    }
+    
 }
