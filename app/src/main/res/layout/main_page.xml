@@ -1,0 +1,76 @@
+<!-- activity_screen_slide.xml -->
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+android:layout_width="wrap_content"
+android:id="@+id/name"
+android:layout_height="wrap_content"
+android:shadowColor="#737272"
+android:shadowDx="10"
+android:shadowDy="10"
+android:shadowRadius="10"
+android:text="EYES"
+android:textColor="#3F51B5"
+android:textSize="96sp"
+android:textStyle="bold|italic"
+app:layout_constraintBottom_toBottomOf="parent"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toTopOf="parent"
+app:layout_constraintVertical_bias="0.412" />
+
+<SeekBar
+    android:id="@+id/seekBar2"
+    style="@style/Widget.AppCompat.SeekBar.Discrete"
+    android:layout_width="400dp"
+    android:layout_height="80dp"
+    android:foregroundTint="#FFFFFF"
+    android:indeterminate="false"
+    android:layerType="none"
+    android:max="10"
+    android:progress="5"
+    android:progressBackgroundTint="#3F51B5"
+    android:progressBackgroundTintMode="src_in"
+    android:progressTint="#3F51B5"
+    android:progressTintMode="src_in"
+    android:scrollbarAlwaysDrawHorizontalTrack="false"
+    android:scrollbarAlwaysDrawVerticalTrack="false"
+    android:scrollbarDefaultDelayBeforeFade="600"
+    android:scrollbarFadeDuration="400"
+    android:scrollbarSize="40dp"
+    android:scrollbarStyle="outsideOverlay"
+    android:thumb="@android:drawable/ic_lock_silent_mode_off"
+    android:thumbTint="#3F51B5"
+    android:thumbTintMode="src_in"
+    app:layout_constraintBottom_toBottomOf="@id/name"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_bias="0.454"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintVertical_bias="0.053"
+    app:tickMarkTintMode="screen"
+    tools:ignore="DuplicateIds" />
+
+<TextView
+    android:id="@+id/autoCompleteTextView"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="your new eyes"
+    android:textSize="20sp"
+    android:textStyle="italic"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_bias="0.498"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintVertical_bias="0.541" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

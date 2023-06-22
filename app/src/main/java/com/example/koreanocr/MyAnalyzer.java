@@ -3,14 +3,12 @@ package com.example.koreanocr;
 import static android.net.wifi.p2p.WifiP2pManager.ERROR;
 import static android.speech.tts.TextToSpeech.QUEUE_FLUSH;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.media.Image;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -44,9 +42,9 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
         this.context = context;
         // When using Korean script library
         this.recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
-        this.screen = MainActivity.previewView;
-        this.textView = MainActivity.textView;
-        this.tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+        this.screen = WordDetectFragment.previewView;
+        this.textView = WordDetectFragment.textView;
+        this.tts = new TextToSpeech( context, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if(status != ERROR) {
@@ -96,10 +94,7 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
                                     sb.append("인식 실패\n");
                                 }
                             }
-
-
                             screen.setOnTouchListener(new View.OnTouchListener() {
-                                @SuppressLint("ClickableViewAccessibility")
                                 @Override
                                 public boolean onTouch(View v, MotionEvent event) {
                                     switch(event.getAction()) {
