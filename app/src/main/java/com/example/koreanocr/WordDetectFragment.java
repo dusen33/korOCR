@@ -5,7 +5,6 @@ import static androidx.core.content.ContextCompat.getMainExecutor;
 import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -95,7 +94,7 @@ public class WordDetectFragment extends Fragment {
                         .build();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    imageAnalysis.setAnalyzer(getMainExecutor(super.getContext()), new MyAnalyzer(super.getContext()));
+                    imageAnalysis.setAnalyzer(getMainExecutor(super.getContext()), new LanguageAnalyzer(super.getContext()));
                 }
 
                 try {

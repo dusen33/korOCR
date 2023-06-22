@@ -22,6 +22,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.objects.ObjectDetection;
+import com.google.mlkit.vision.objects.ObjectDetector;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
@@ -31,19 +33,21 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.PriorityQueue;
 
-public class MyAnalyzer implements ImageAnalysis.Analyzer {
+public class LanguageAnalyzer implements ImageAnalysis.Analyzer {
     static final int readingCount = 5;
     private TextRecognizer recognizer;
     private PreviewView screen;
     private Context context;
     private TextView textView;
     private TextToSpeech tts;
-    public MyAnalyzer(Context context) {
+
+    public LanguageAnalyzer(Context context) {
         this.context = context;
         // When using Korean script library
         this.recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
         this.screen = WordDetectFragment.previewView;
         this.textView = WordDetectFragment.textView;
+
         this.tts = new TextToSpeech( context, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -55,10 +59,10 @@ public class MyAnalyzer implements ImageAnalysis.Analyzer {
             }
         });
     }
+
     @Override
     @OptIn(markerClass = ExperimentalGetImage.class)
     public void analyze(ImageProxy imageProxy) {
-        recognizer = TextRecognition.getClient(new KoreanTextRecognizerOptions.Builder().build());
         Image mediaImage = imageProxy.getImage();
         if (mediaImage != null) {
             InputImage image = InputImage.fromMediaImage(

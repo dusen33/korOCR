@@ -44,6 +44,8 @@ dependencies {
 
     // To recognize Korean script
     implementation 'com.google.mlkit:text-recognition-korean:16.0.0'
+    // To detect objects
+    implementation 'com.google.mlkit:object-detection:17.0.0'
 
     // basic dependencies
     implementation 'androidx.appcompat:appcompat:1.6.1'
